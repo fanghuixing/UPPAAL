@@ -1,0 +1,979 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+clock globalTime;
+//the number of stations
+const int N=4;
+typedef int[0,N - 1] id_station;
+const int S[id_station] = {0, 2284, 3292, 9097};
+const int S0 = 10454;
+
+typedef int[0,1] id_doorsgroup;
+typedef int[0,1] id_dir;
+
+//the number of trains
+const int Nt=4;
+typedef int[0,Nt - 1] id_train;
+//delay to start
+const int delayforurgent = 200;// VERY IMPORTANT!!!
+const int D[id_station] = {0, 45, 90, 135};
+clock x[id_train];//distances
+int direction[id_train];//directions
+broadcast chan urstop[id_train][id_train];
+broadcast chan urstart[id_train];
+broadcast chan urts[id_train];//train stopped urgently
+broadcast chan change[id_train];//change direction
+const int Num=3;
+typedef int[0,Num - 1] id_t;
+
+const int Hours=9;
+typedef int[0,Hours-1] id_hour;
+const int PrOfClamp[id_hour] = {5,5,10,25,40,40,40,25,25};
+
+int prc;
+
+broadcast chan 
+open_ScreenDoor[id_station][id_doorsgroup],shut_closed_ScreenDoor[id_station][id_t][id_doorsgroup],close_ScreenDoor[id_station][id_doorsgroup], 
+open_TrainDoor[id_train],close_TrainDoor[id_train],shut_closed_TrainDoor[id_train][id_t],
+trainstop[id_train][id_station][id_dir],
+trainleave[id_train][id_station];
+</declaration>
+	<template>
+		<name>monitor</name>
+		<declaration>//variable probability
+int i;
+clock time;</declaration>
+		<location id="id0" x="8" y="-8">
+			<name x="24" y="-16">idle</name>
+			<label kind="invariant" x="48" y="-16">time&lt;=i*3600</label>
+		</location>
+		<location id="id1" x="-208" y="-8">
+			<urgent/>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="-176" y="24">time==i*3600&amp;&amp;i==Hours</label>
+			<nail x="-8" y="24"/>
+			<nail x="-192" y="24"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id0"/>
+			<label kind="guard" x="-40" y="-88">time==i*3600&amp;&amp;i&lt;Hours</label>
+			<label kind="assignment" x="-40" y="-72">prc=PrOfClamp[i],i=i+1</label>
+			<nail x="24" y="-48"/>
+			<nail x="-8" y="-48"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="assignment" x="-192" y="-32">i=1,prc=PrOfClamp[0],time=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>urgentcontrol</name>
+		<parameter>id_train Ti</parameter>
+		<declaration>int Tj;
+clock t;</declaration>
+		<location id="id2" x="632" y="-72">
+			<name x="608" y="-112">L6</name>
+			<label kind="invariant" x="600" y="-96">t&lt;=1</label>
+		</location>
+		<location id="id3" x="520" y="-72">
+			<name x="510" y="-102">L5</name>
+		</location>
+		<location id="id4" x="352" y="-72">
+			<name x="344" y="-112">L4</name>
+			<urgent/>
+		</location>
+		<location id="id5" x="-64" y="-72">
+			<name x="-74" y="-102">L1</name>
+			<label kind="invariant" x="-112" y="-72">t&lt;=1</label>
+		</location>
+		<location id="id6" x="-272" y="-72">
+			<name x="-282" y="-102">INIT</name>
+			<label kind="invariant" x="-282" y="-57">t&lt;=delayforurgent</label>
+		</location>
+		<init ref="id6"/>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id5"/>
+			<label kind="guard" x="336" y="48">x[Tj]&lt;=x[Ti]&amp;&amp;t==1&amp;&amp;
+x[Tj]&gt;300+x[Ti]-S0</label>
+			<label kind="synchronisation" x="344" y="88">urstart[Ti]!</label>
+			<label kind="assignment" x="424" y="88">t=0</label>
+			<nail x="632" y="48"/>
+			<nail x="-64" y="48"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="guard" x="640" y="-24">x[Tj]&lt;=x[Ti]&amp;&amp;t==1&amp;&amp;
+x[Tj]&lt;=300+x[Ti]-S0</label>
+			<label kind="assignment" x="648" y="8">t=0</label>
+			<nail x="736" y="-64"/>
+			<nail x="736" y="-24"/>
+			<nail x="664" y="-24"/>
+			<nail x="648" y="-32"/>
+			<nail x="640" y="-40"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="392" y="-16">x[Tj]&lt;=x[Ti]&amp;&amp;
+x[Tj]&lt;=300+x[Ti]-S0</label>
+			<label kind="synchronisation" x="400" y="16">urstop[Ti][Tj]!</label>
+			<nail x="352" y="-24"/>
+			<nail x="520" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-8" y="-144">x[Tj]&gt;x[Ti]+300&amp;&amp;x[Ti]&lt;=x[Tj]</label>
+			<label kind="assignment" x="224" y="-144">Tj++,t=0</label>
+			<nail x="344" y="-88"/>
+			<nail x="336" y="-120"/>
+			<nail x="-48" y="-120"/>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id2"/>
+			<label kind="guard" x="664" y="-184">t==1&amp;&amp;
+x[Tj]&lt;=x[Ti]+300
+&amp;&amp;x[Ti]&lt;=x[Tj]</label>
+			<label kind="assignment" x="664" y="-136">t=0</label>
+			<nail x="736" y="-80"/>
+			<nail x="736" y="-120"/>
+			<nail x="648" y="-120"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-32" y="-48">x[Tj]&lt;=x[Ti]&amp;&amp;x[Tj]&gt;300+x[Ti]-S0</label>
+			<label kind="assignment" x="232" y="-48">Tj++,t=0</label>
+			<nail x="344" y="-24"/>
+			<nail x="-48" y="-24"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-144" y="-184">Tj!=Nt&amp;&amp;
+Ti==Tj
+&amp;&amp;t==1</label>
+			<label kind="assignment" x="-144" y="-136">Tj++,t=0</label>
+			<nail x="-80" y="-136"/>
+			<nail x="-112" y="-120"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-184" y="8">Tj==Nt&amp;&amp;t==1</label>
+			<label kind="assignment" x="-144" y="24">Tj=0</label>
+			<nail x="-104" y="8"/>
+			<nail x="-128" y="-8"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="544" y="-96">urts[Ti]?</label>
+			<label kind="assignment" x="560" y="-72">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id5"/>
+			<label kind="guard" x="96" y="-248">x[Tj]&gt;x[Ti]+300&amp;&amp;x[Ti]&lt;=x[Tj]&amp;&amp;t==1</label>
+			<label kind="synchronisation" x="360" y="-248">urstart[Ti]!</label>
+			<label kind="assignment" x="440" y="-248">Tj++,t=0</label>
+			<nail x="632" y="-216"/>
+			<nail x="-64" y="-216"/>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id3"/>
+			<label kind="guard" x="376" y="-112">x[Tj]&lt;=x[Ti]+300&amp;&amp;
+x[Ti]&lt;=x[Tj]</label>
+			<label kind="synchronisation" x="384" y="-72">urstop[Ti][Tj]!</label>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id4"/>
+			<label kind="guard" x="56" y="-96">Tj!=Nt&amp;&amp;Ti!=Tj&amp;&amp;t==1</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-200" y="-96">t==delayforurgent</label>
+			<label kind="assignment" x="-256" y="-96">Tj=0,t=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>endstation</name>
+		<declaration>//bool  stopflag[id_train];//whether or not to stop the train.
+int Ti=-1,Tj=-1;
+clock t;
+//void update(){
+//        for (i:id_train)
+//            for (j:id_train) {
+//                if (j!=i &amp;&amp; direction[j]==direction[i] &amp;&amp; direction[i]==1){
+//                    if (x[j]-x[i]&lt;=300 &amp;&amp; x[j]-x[i]&gt;0) {
+//                        stopflag[i]=1;// we have to stop the train.
+//                    }
+//                }
+//                else if (j!=i &amp;&amp; direction[j]==direction[i] &amp;&amp; direction[i]==-1) {
+//                    if (x[i]-x[j]&lt;=300 &amp;&amp; x[i]-x[j]&gt;0) {
+//                        stopflag[i]=1;// we have to stop the train.
+//                    }
+//                }
+//       }         
+//}
+
+</declaration>
+		<location id="id7" x="-168" y="-248">
+			<label kind="invariant" x="-178" y="-233">t&lt;=1</label>
+		</location>
+		<location id="id8" x="-320" y="-248">
+			<name x="-330" y="-278">Wait</name>
+		</location>
+		<location id="id9" x="-440" y="-176">
+			<name x="-424" y="-208">INIT</name>
+			<label kind="invariant" x="-488" y="-184">t&gt;=0</label>
+		</location>
+		<init ref="id9"/>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-216" y="-344">Ti!=-1&amp;&amp;Tj!=-1&amp;&amp;t==1
+&amp;&amp;x[Ti]-x[Tj]&lt;500</label>
+			<label kind="assignment" x="-104" y="-320">t=0</label>
+			<nail x="-152" y="-304"/>
+			<nail x="-176" y="-304"/>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id7"/>
+			<label kind="synchronisation" x="-296" y="-272">trainleave[Ti][N-1]?</label>
+			<label kind="assignment" x="-272" y="-248">t=0</label>
+			<nail x="-296" y="-248"/>
+			<nail x="-280" y="-248"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-288" y="-144">Ti!=-1&amp;&amp;Tj==-1&amp;&amp;t==1</label>
+			<label kind="synchronisation" x="-288" y="-120">change[Ti]!</label>
+			<label kind="assignment" x="-216" y="-120">Tj=Ti,Ti=-1</label>
+			<nail x="-120" y="-248"/>
+			<nail x="-120" y="-120"/>
+			<nail x="-376" y="-120"/>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-336" y="-208">Ti!=-1&amp;&amp;Tj!=-1&amp;&amp;t==1
+&amp;&amp;x[Ti]-x[Tj]&gt;=500</label>
+			<label kind="synchronisation" x="-336" y="-176">change[Ti]!</label>
+			<label kind="assignment" x="-264" y="-176">Tj=Ti,Ti=-1</label>
+			<nail x="-256" y="-216"/>
+			<nail x="-352" y="-200"/>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id8"/>
+			<label kind="select" x="-456" y="-304">i:id_train</label>
+			<label kind="synchronisation" x="-464" y="-280">trainstop[i][N-1][1]?</label>
+			<label kind="assignment" x="-432" y="-264">Ti=i</label>
+			<nail x="-440" y="-248"/>
+			<nail x="-392" y="-248"/>
+		</transition>
+	</template>
+	<template>
+		<name>startstation</name>
+		<declaration>clock t;
+int Ti=-1,Tj=-1;</declaration>
+		<location id="id10" x="-176" y="-248">
+			<label kind="invariant" x="-186" y="-233">t&lt;=1</label>
+		</location>
+		<location id="id11" x="-320" y="-248">
+			<name x="-330" y="-278">Wait</name>
+		</location>
+		<location id="id12" x="-440" y="-176">
+			<name x="-424" y="-208">INIT</name>
+			<label kind="invariant" x="-488" y="-184">t&gt;=0</label>
+		</location>
+		<init ref="id12"/>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-224" y="-344">Ti!=-1&amp;&amp;Tj!=-1&amp;&amp;t==1
+&amp;&amp;x[Tj]-x[Ti]&lt;500</label>
+			<label kind="assignment" x="-112" y="-320">t=0</label>
+			<nail x="-152" y="-304"/>
+			<nail x="-184" y="-304"/>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-296" y="-272">trainleave[Ti][0]?</label>
+			<label kind="assignment" x="-272" y="-248">t=0</label>
+			<nail x="-296" y="-248"/>
+			<nail x="-280" y="-248"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-288" y="-144">Ti!=-1&amp;&amp;Tj==-1&amp;&amp;t==1</label>
+			<label kind="synchronisation" x="-288" y="-120">change[Ti]!</label>
+			<label kind="assignment" x="-216" y="-120">Tj=Ti,Ti=-1</label>
+			<nail x="-120" y="-248"/>
+			<nail x="-120" y="-120"/>
+			<nail x="-376" y="-120"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id12"/>
+			<label kind="guard" x="-336" y="-208">Ti!=-1&amp;&amp;Tj!=-1&amp;&amp;t==1
+&amp;&amp;x[Tj]-x[Ti]&gt;=500</label>
+			<label kind="synchronisation" x="-336" y="-176">change[Ti]!</label>
+			<label kind="assignment" x="-264" y="-176">Tj=Ti,Ti=-1</label>
+			<nail x="-256" y="-216"/>
+			<nail x="-352" y="-200"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id11"/>
+			<label kind="select" x="-456" y="-304">i:id_train</label>
+			<label kind="synchronisation" x="-464" y="-280">trainstop[i][0][0]?</label>
+			<label kind="assignment" x="-432" y="-264">Ti=i</label>
+			<nail x="-440" y="-248"/>
+			<nail x="-392" y="-248"/>
+		</transition>
+	</template>
+	<template>
+		<name x="5" y="5">train</name>
+		<parameter>id_train i</parameter>
+		<declaration>// Place local declarations here.
+clock v;//velocity
+clock time;
+int dir=1;//direction
+int j;//count the stations
+int pos;
+clock acc; //acceleration
+clock cd;//change direction
+//id_train Tj;
+clock maxv;
+void setDirection(){
+     direction[i]=dir;
+}
+
+void calMaxv(){
+        maxv=sqrt(0.5*(pos-x[i]));
+}</declaration>
+		<location id="id13" x="184" y="-416">
+			<urgent/>
+		</location>
+		<location id="id14" x="-312" y="-488">
+			<name x="-384" y="-520">URSTOP</name>
+			<label kind="invariant" x="-384" y="-504">x[i]'==1*v
+&amp;&amp;v'==0</label>
+		</location>
+		<location id="id15" x="-88" y="-560">
+			<name x="-112" y="-592">RECOVER</name>
+			<label kind="invariant" x="-112" y="-640">x[i]'==1*v&amp;&amp;
+v'==-0.5&amp;&amp;
+v&gt;=0&amp;&amp;x[i]&lt;=pos</label>
+		</location>
+		<location id="id16" x="-248" y="-560">
+			<name x="-258" y="-590">URINC</name>
+			<label kind="invariant" x="-264" y="-632">x[i]'==1*v&amp;&amp;v'==0.5&amp;&amp;
+v&gt;=0&amp;&amp;v&lt;=maxv
+&amp;&amp;maxv'==0</label>
+		</location>
+		<location id="id17" x="-264" y="-416">
+			<name x="-288" y="-408">URDEC</name>
+			<label kind="invariant" x="-288" y="-392">x[i]'==1*v&amp;&amp;
+v'==-1.5&amp;&amp;
+v&gt;=0</label>
+		</location>
+		<location id="id18" x="-128" y="-320">
+			<urgent/>
+		</location>
+		<location id="id19" x="-128" y="-240">
+			<name x="-232" y="-264">STABLERUN</name>
+			<label kind="invariant" x="-272" y="-248">x[i]'==1*v&amp;&amp;v'==0&amp;&amp;
+x[i]&lt;=pos-500</label>
+		</location>
+		<location id="id20" x="16" y="-416">
+			<name x="0" y="-448">NEAR</name>
+			<label kind="invariant" x="0" y="-512">x[i]'==1*v&amp;&amp;
+v'==1*acc&amp;&amp;
+x[i]&lt;=pos&amp;&amp;
+v&gt;=0&amp;&amp;acc'==0</label>
+		</location>
+		<location id="id21" x="184" y="-240">
+			<urgent/>
+		</location>
+		<location id="id22" x="184" y="-304">
+			<name x="192" y="-352">STOP</name>
+			<label kind="invariant" x="64" y="-312">x[i]'==0&amp;&amp;v'==0</label>
+		</location>
+		<location id="id23" x="-24" y="-240">
+			<name x="-40" y="-216">RUN</name>
+			<label kind="invariant" x="-64" y="-200">x[i]'==1*v&amp;&amp;v'==0.5&amp;&amp;
+x[i]&lt;=pos-500&amp;&amp;v&gt;=0&amp;&amp;v&lt;=20</label>
+		</location>
+		<location id="id24" x="272" y="-392">
+			<name x="262" y="-422">INIT</name>
+			<label kind="invariant" x="240" y="-472">time&lt;=D[i]&amp;&amp;
+x[i]'==0
+&amp;&amp;v'==0</label>
+		</location>
+		<init ref="id24"/>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id22"/>
+			<label kind="guard" x="88" y="-368">pos&lt;S0</label>
+			<nail x="144" y="-392"/>
+			<nail x="144" y="-320"/>
+		</transition>
+		<transition>
+			<source ref="id13"/>
+			<target ref="id22"/>
+			<label kind="guard" x="192" y="-384">pos==S0</label>
+			<label kind="assignment" x="192" y="-368">x[i]=0</label>
+			<nail x="184" y="-336"/>
+			<nail x="184" y="-320"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-360" y="-464">v==0</label>
+			<label kind="synchronisation" x="-360" y="-448">urts[i]!</label>
+			<nail x="-312" y="-432"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id17"/>
+			<label kind="select" x="-80" y="-544">Tj:id_train</label>
+			<label kind="synchronisation" x="-80" y="-528">urstop[i][Tj]?</label>
+			<nail x="-88" y="-488"/>
+		</transition>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id13"/>
+			<label kind="guard" x="8" y="-608">x[i]&lt;=pos+1&amp;&amp;x[i]&gt;=pos-1</label>
+			<label kind="synchronisation" x="8" y="-584">trainstop[i][j][1]!</label>
+			<label kind="assignment" x="104" y="-584">v=0,x[i]=pos</label>
+			<nail x="184" y="-560"/>
+			<nail x="184" y="-488"/>
+			<nail x="184" y="-456"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id17"/>
+			<label kind="select" x="-208" y="-536">Tj:id_train</label>
+			<label kind="synchronisation" x="-208" y="-520">urstop[i][Tj]?</label>
+			<nail x="-216" y="-544"/>
+			<nail x="-216" y="-440"/>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-192" y="-584">v==maxv</label>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id16"/>
+			<label kind="synchronisation" x="-376" y="-568">urstart[i]?</label>
+			<label kind="assignment" x="-376" y="-552">calMaxv()</label>
+			<nail x="-312" y="-528"/>
+			<nail x="-312" y="-560"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id17"/>
+			<label kind="select" x="-288" y="-480">Tj:id_train</label>
+			<label kind="synchronisation" x="-296" y="-464">urstop[i][Tj]?</label>
+			<nail x="-248" y="-440"/>
+			<nail x="-280" y="-440"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id17"/>
+			<label kind="select" x="-232" y="-200">Tj:id_train</label>
+			<label kind="synchronisation" x="-160" y="-200">urstop[i][Tj]?</label>
+			<nail x="-64" y="-200"/>
+			<nail x="-312" y="-200"/>
+			<nail x="-312" y="-416"/>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id17"/>
+			<label kind="select" x="-384" y="-336">Tj:id_train</label>
+			<label kind="synchronisation" x="-392" y="-312">urstop[i][Tj]?</label>
+			<nail x="-144" y="-200"/>
+			<nail x="-312" y="-200"/>
+			<nail x="-312" y="-416"/>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id17"/>
+			<label kind="select" x="-160" y="-440">Tj:id_train</label>
+			<label kind="synchronisation" x="-160" y="-416">urstop[i][Tj]?</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id23"/>
+			<label kind="guard" x="232" y="-248">j==N-1</label>
+			<label kind="assignment" x="232" y="-232">j=0,pos=S0</label>
+			<nail x="224" y="-240"/>
+			<nail x="224" y="-208"/>
+			<nail x="0" y="-208"/>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="guard" x="-216" y="-296">x[i]==pos-500</label>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-96" y="-264">v==20</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="-104" y="-384">acc=-v*v*0.001</label>
+			<nail x="-128" y="-360"/>
+			<nail x="-8" y="-360"/>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id23"/>
+			<label kind="guard" x="0" y="-264">j&lt;N-1</label>
+			<label kind="assignment" x="56" y="-240">j=j+1,pos=S[j]</label>
+			<nail x="144" y="-240"/>
+			<nail x="-8" y="-240"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id18"/>
+			<label kind="guard" x="-96" y="-344">x[i]==pos-500</label>
+			<nail x="-32" y="-320"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id21"/>
+			<label kind="synchronisation" x="192" y="-288">trainleave[i][j]?</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id13"/>
+			<label kind="guard" x="48" y="-440">x[i]==pos</label>
+			<label kind="synchronisation" x="32" y="-416">trainstop[i][j][1]!</label>
+			<label kind="assignment" x="112" y="-440">v=0</label>
+			<nail x="128" y="-416"/>
+			<nail x="152" y="-416"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id22"/>
+			<label kind="guard" x="288" y="-376">time==D[i]</label>
+			<label kind="synchronisation" x="280" y="-328">trainstop[i][j][1]!</label>
+			<label kind="assignment" x="288" y="-360">j=0,pos=S[j],
+x[i]=pos,v=0</label>
+			<nail x="272" y="-304"/>
+			<nail x="224" y="-304"/>
+		</transition>
+	</template>
+	<template>
+		<name>train_door</name>
+		<parameter>id_train i,id_t j</parameter>
+		<declaration>clock y1,cost;
+bool c1;</declaration>
+		<location id="id25" x="-264" y="-72">
+			<urgent/>
+		</location>
+		<location id="id26" x="-328" y="-192">
+			<name x="-368" y="-192">shut</name>
+			<label kind="invariant" x="-456" y="-208">y1'==-1&amp;&amp;y1&gt;=0</label>
+		</location>
+		<location id="id27" x="-328" y="-296">
+			<name x="-338" y="-326">Init</name>
+			<urgent/>
+		</location>
+		<location id="id28" x="-248" y="-192">
+			<name x="-232" y="-192">clamp</name>
+			<label kind="invariant" x="-304" y="-232">y1'==-1 &amp;&amp; y1&gt;0</label>
+		</location>
+		<location id="id29" x="-40" y="-296">
+			<name x="-50" y="-326">part</name>
+			<label kind="invariant" x="-120" y="-344">y1'==1&amp;&amp;y1&gt;=0&amp;&amp;y1&lt;=2</label>
+		</location>
+		<location id="id30" x="-40" y="-72">
+			<name x="-56" y="-64">open</name>
+			<label kind="invariant" x="-16" y="-80">y1'==0&amp;&amp;cost'==0</label>
+			<label kind="exponentialrate" x="-48" y="-48">2</label>
+		</location>
+		<location id="id31" x="-200" y="-296">
+			<name x="-224" y="-328">closed</name>
+			<label kind="invariant" x="-242" y="-281">y1'==0&amp;&amp;cost'==0</label>
+		</location>
+		<branchpoint id="id32" x="-328" y="-72">
+		</branchpoint>
+		<init ref="id27"/>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id32"/>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id26"/>
+			<label kind="probability" x="-384" y="-152">100-prc</label>
+		</transition>
+		<transition>
+			<source ref="id32"/>
+			<target ref="id28"/>
+			<label kind="probability" x="-264" y="-160">prc</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id27"/>
+			<label kind="guard" x="-440" y="-272">y1==0&amp;&amp;cost&gt;3</label>
+			<label kind="synchronisation" x="-512" y="-248">shut_closed_TrainDoor[i][j]!</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id29"/>
+			<label kind="guard" x="-144" y="-248">y1&lt;2</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-184" y="-120">c1==1</label>
+			<nail x="-88" y="-96"/>
+			<nail x="-256" y="-96"/>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id25"/>
+			<label kind="synchronisation" x="-224" y="-72">close_TrainDoor[i]?</label>
+			<label kind="assignment" x="-184" y="-56">c1=1</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-56" y="-256">y1==2</label>
+		</transition>
+		<transition>
+			<source ref="id31"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-184" y="-320">open_TrainDoor[i]?</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id31"/>
+			<label kind="assignment" x="-320" y="-296">y1=0,c1=0,cost=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>screen_door</name>
+		<parameter>id_station i,id_t j,id_doorsgroup k</parameter>
+		<declaration>clock y2,cost;
+bool c2;</declaration>
+		<location id="id33" x="-256" y="112">
+			<urgent/>
+		</location>
+		<location id="id34" x="-248" y="-8">
+			<name x="-258" y="-38">clamp</name>
+			<label kind="invariant" x="-312" y="-48">y2'==-1 &amp;&amp; y2&gt;0</label>
+		</location>
+		<location id="id35" x="-328" y="-8">
+			<name x="-368" y="-8">shut</name>
+			<label kind="invariant" x="-448" y="-24">y2'==-1&amp;&amp;y2&gt;=0</label>
+		</location>
+		<location id="id36" x="-40" y="112">
+			<name x="-56" y="120">open</name>
+			<label kind="invariant" x="-16" y="104">y2'==0&amp;&amp;cost'==0</label>
+			<label kind="exponentialrate" x="-48" y="136">2</label>
+		</location>
+		<location id="id37" x="-40" y="-112">
+			<name x="-50" y="-142">part</name>
+			<label kind="invariant" x="-120" y="-160">y2'==1&amp;&amp;y2&gt;=0&amp;&amp;y2&lt;=2</label>
+		</location>
+		<location id="id38" x="-208" y="-112">
+			<name x="-232" y="-144">closed</name>
+			<label kind="invariant" x="-250" y="-97">y2'==0&amp;&amp;cost'==0</label>
+		</location>
+		<location id="id39" x="-328" y="-112">
+			<name x="-338" y="-142">Init</name>
+			<urgent/>
+		</location>
+		<branchpoint id="id40" x="-328" y="112">
+		</branchpoint>
+		<init ref="id39"/>
+		<transition>
+			<source ref="id33"/>
+			<target ref="id40"/>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id33"/>
+			<label kind="guard" x="-224" y="58">c2==1</label>
+			<nail x="-88" y="88"/>
+			<nail x="-240" y="88"/>
+		</transition>
+		<transition>
+			<source ref="id35"/>
+			<target ref="id39"/>
+			<label kind="guard" x="-384" y="-64">y2==0</label>
+			<label kind="synchronisation" x="-536" y="-88">shut_closed_ScreenDoor[i][j][k]!</label>
+		</transition>
+		<transition>
+			<source ref="id34"/>
+			<target ref="id37"/>
+			<label kind="guard" x="-184" y="-40">y2&lt;2</label>
+		</transition>
+		<transition>
+			<source ref="id36"/>
+			<target ref="id33"/>
+			<label kind="synchronisation" x="-224" y="112">close_ScreenDoor[i][k]?</label>
+			<label kind="assignment" x="-184" y="128">c2=1</label>
+		</transition>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id34"/>
+			<label kind="probability" x="-280" y="40">prc</label>
+			<nail x="-320" y="88"/>
+		</transition>
+		<transition>
+			<source ref="id40"/>
+			<target ref="id35"/>
+			<label kind="probability" x="-384" y="40">200-prc</label>
+		</transition>
+		<transition>
+			<source ref="id37"/>
+			<target ref="id36"/>
+			<label kind="guard" x="-56" y="-72">y2==2</label>
+		</transition>
+		<transition>
+			<source ref="id38"/>
+			<target ref="id37"/>
+			<label kind="synchronisation" x="-200" y="-136">open_ScreenDoor[i][k]?</label>
+		</transition>
+		<transition>
+			<source ref="id39"/>
+			<target ref="id38"/>
+			<label kind="assignment" x="-320" y="-112">y2=0,c2=0,cost=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Controller</name>
+		<parameter>id_train trainid</parameter>
+		<declaration>clock t,time;
+int count;
+int stationid,dir;
+id_train Tj;
+bool ininit=true;</declaration>
+		<location id="id41" x="-864" y="-296">
+			<name x="-856" y="-336">leave</name>
+			<urgent/>
+		</location>
+		<location id="id42" x="-640" y="-296">
+			<name x="-680" y="-360">clsescreendoors</name>
+			<label kind="invariant" x="-672" y="-336">count&lt;=Num</label>
+			<label kind="exponentialrate" x="-650" y="-281">2</label>
+		</location>
+		<location id="id43" x="-336" y="-296">
+			<name x="-352" y="-336">waiting</name>
+			<label kind="invariant" x="-346" y="-281">t&lt;=6</label>
+		</location>
+		<location id="id44" x="-224" y="-296">
+			<name x="-208" y="-312">closetraindoors</name>
+			<label kind="invariant" x="-200" y="-336">count&lt;=Num</label>
+			<label kind="exponentialrate" x="-234" y="-281">2</label>
+		</location>
+		<location id="id45" x="-224" y="-480">
+			<name x="-272" y="-528">opentraindoors</name>
+			<label kind="invariant" x="-264" y="-472">t&lt;=30</label>
+		</location>
+		<location id="id46" x="-424" y="-480">
+			<name x="-464" y="-528">openscreendoors</name>
+			<label kind="invariant" x="-434" y="-465">t&lt;=2</label>
+		</location>
+		<location id="id47" x="-656" y="-480">
+			<name x="-672" y="-520">stop</name>
+			<label kind="invariant" x="-666" y="-465">t&lt;=5</label>
+		</location>
+		<location id="id48" x="-864" y="-480">
+			<name x="-880" y="-520">INIT</name>
+			<label kind="invariant" x="-984" y="-488">time'==0&amp;&amp;t'==0</label>
+		</location>
+		<init ref="id48"/>
+		<transition>
+			<source ref="id41"/>
+			<target ref="id48"/>
+			<label kind="assignment" x="-856" y="-400">time=0,t=0,ininit=true</label>
+		</transition>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id41"/>
+			<label kind="guard" x="-808" y="-336">count==Num</label>
+			<label kind="synchronisation" x="-832" y="-320">trainleave[trainid][stationid]!</label>
+			<label kind="assignment" x="-812" y="-296">time=0,count=0</label>
+		</transition>
+		<transition>
+			<source ref="id42"/>
+			<target ref="id42"/>
+			<label kind="select" x="-712" y="-256">i:id_t</label>
+			<label kind="guard" x="-824" y="-240">count&lt;Num</label>
+			<label kind="synchronisation" x="-744" y="-240">shut_closed_ScreenDoor[stationid][i][dir]?</label>
+			<label kind="assignment" x="-716" y="-272">count++</label>
+			<nail x="-672" y="-248"/>
+			<nail x="-608" y="-248"/>
+		</transition>
+		<transition>
+			<source ref="id43"/>
+			<target ref="id42"/>
+			<label kind="guard" x="-600" y="-320">t&gt;=5</label>
+			<label kind="synchronisation" x="-568" y="-320">close_ScreenDoor[stationid][dir]!</label>
+			<label kind="assignment" x="-528" y="-296">count=0</label>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id44"/>
+			<label kind="select" x="-304" y="-264">i:id_t</label>
+			<label kind="guard" x="-304" y="-232">count&lt;Num</label>
+			<label kind="synchronisation" x="-384" y="-248">shut_closed_TrainDoor[trainid][i]?</label>
+			<label kind="assignment" x="-312" y="-280">count++</label>
+			<nail x="-264" y="-248"/>
+			<nail x="-192" y="-248"/>
+		</transition>
+		<transition>
+			<source ref="id44"/>
+			<target ref="id43"/>
+			<label kind="guard" x="-320" y="-320">count==Num</label>
+			<label kind="assignment" x="-296" y="-296">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id45"/>
+			<target ref="id44"/>
+			<label kind="guard" x="-264" y="-448">t&gt;=20</label>
+			<label kind="synchronisation" x="-392" y="-408">close_TrainDoor[trainid]!</label>
+			<label kind="assignment" x="-284" y="-388">count=0</label>
+		</transition>
+		<transition>
+			<source ref="id46"/>
+			<target ref="id45"/>
+			<label kind="synchronisation" x="-400" y="-504">open_TrainDoor[trainid]!</label>
+			<label kind="assignment" x="-384" y="-480">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id47"/>
+			<target ref="id46"/>
+			<label kind="synchronisation" x="-640" y="-504">open_ScreenDoor[stationid][dir]!</label>
+			<label kind="assignment" x="-600" y="-480">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id48"/>
+			<target ref="id47"/>
+			<label kind="select" x="-824" y="-528">j:id_station,k:id_dir</label>
+			<label kind="synchronisation" x="-832" y="-504">trainstop[trainid][j][k]?</label>
+			<label kind="assignment" x="-840" y="-480">stationid=j,dir=k,t=0,time=0,
+ininit=false</label>
+		</transition>
+	</template>
+	<system>//Train Numer 1
+
+Tr1 = train(0);
+//Train Doors
+Tr1TD1=train_door(0,0);
+Tr1TD2=train_door(0,1);
+Tr1TD3=train_door(0,2);
+
+
+//Train Number 2
+
+Tr2 = train(1);
+//Train Doors
+Tr2TD1=train_door(1,0);
+Tr2TD2=train_door(1,1);
+Tr2TD3=train_door(1,2);
+
+
+//Trains Number 3
+
+Tr3 = train(2);
+//Train Doors
+Tr3TD1=train_door(2,0);
+Tr3TD2=train_door(2,1);
+Tr3TD3=train_door(2,2);
+
+
+//Train Number 4
+
+Tr4 = train(3);
+//Train Doors
+Tr4TD1=train_door(3,0);
+Tr4TD2=train_door(3,1);
+Tr4TD3=train_door(3,2);
+
+
+//--------------B--&gt;-----------------
+//--------------&lt;--A-----------------
+
+//Screen Doors, each station has tow groups of screen doors. Named Group A and Group B.
+Station1ASD1=screen_door(0,0,0);//the third 0 of paras is the identifier of Group A.
+Station1ASD2=screen_door(0,1,0);
+Station1ASD3=screen_door(0,2,0);
+Station1BSD1=screen_door(0,0,1);//the third 1 of paras is the identifier of Group B.
+Station1BSD2=screen_door(0,1,1);
+Station1BSD3=screen_door(0,2,1);
+
+Station2ASD1=screen_door(1,0,0);//the third 0 of paras is the identifier of Group A.
+Station2ASD2=screen_door(1,1,0);
+Station2ASD3=screen_door(1,2,0);
+Station2BSD1=screen_door(1,0,1);//the third 1 of paras is the identifier of Group B.
+Station2BSD2=screen_door(1,1,1);
+Station2BSD3=screen_door(1,2,1);
+
+Station3ASD1=screen_door(2,0,0);//the third 0 of paras is the identifier of Group A.
+Station3ASD2=screen_door(2,1,0);
+Station3ASD3=screen_door(2,2,0);
+Station3BSD1=screen_door(2,0,1);//the third 1 of paras is the identifier of Group B.
+Station3BSD2=screen_door(2,1,1);
+Station3BSD3=screen_door(2,2,1);
+
+Station4ASD1=screen_door(3,0,0);//the third 0 of paras is the identifier of Group A.
+Station4ASD2=screen_door(3,1,0);
+Station4ASD3=screen_door(3,2,0);
+Station4BSD1=screen_door(3,0,1);//the third 1 of paras is the identifier of Group B.
+Station4BSD2=screen_door(3,1,1);
+Station4BSD3=screen_door(3,2,1);
+
+//Controllers
+C1 = Controller(0);
+C2 = Controller(1);
+C3 = Controller(2);
+C4 = Controller(3);
+
+
+//urgent control
+uc1 = urgentcontrol(0);
+uc2 = urgentcontrol(1);
+uc3 = urgentcontrol(2);
+uc4 = urgentcontrol(3);
+
+system 
+Tr1,Tr1TD1,Tr1TD2,Tr1TD3,
+Tr2,Tr2TD1,Tr2TD2,Tr2TD3,
+Tr3,Tr3TD1,Tr3TD2,Tr3TD3,
+Tr4,Tr4TD1,Tr4TD2,Tr4TD3,
+Station1ASD1,Station1ASD2,Station1ASD3,Station1BSD1,Station1BSD2,Station1BSD3,
+Station2ASD1,Station2ASD2,Station2ASD3,Station2BSD1,Station2BSD2,Station2BSD3,
+Station3ASD1,Station3ASD2,Station3ASD3,Station3BSD1,Station3BSD2,Station3BSD3,
+Station4ASD1,Station4ASD2,Station4ASD3,Station4BSD1,Station4BSD2,Station4BSD3,
+C1,C2,C3,C4,monitor,uc1,uc2,uc3,uc4;</system>
+</nta>

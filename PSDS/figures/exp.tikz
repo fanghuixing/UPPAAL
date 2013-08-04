@@ -1,0 +1,12 @@
+\makeatletter
+\pgfmathdeclarefunction{square}{1}{%
+\begingroup
+ \pgfmathparse{#1*#1}
+ \pgfmath@smuggleone\pgfmathresult%
+\endgroup}   
+\begin{tikzpicture}
+    \draw[very thin,color=gray] ;
+    \draw[->] (-.2,0) -- (1,0) node[right] {$t$};
+    \draw[->] (0,-0.2) -- (0,0.5) node[above] {$f(t)$};
+    \draw[domain=0:1] plot (\x,{0.4*exp(-\x)}) node[below right] {$f(t) =k* e^{-t}$};
+\end{tikzpicture}

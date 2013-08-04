@@ -1,0 +1,117 @@
+
+D:\fanghuixing\csfile\Hybrid Systems\DOC\UPPAAL\PSDS>verifytga subwayTiga.xml -t0  -c1
+verifytga: unknown option -- 1
+Unknown option: -?.
+Guessed query file: subwayTiga.q
+Options for the verification:
+  Generating some trace
+  Search order is breadth first (UPPAAL), automatic (TIGA)
+  Using conservative space optimisation
+  Seed is 1369989324
+  State space representation uses minimal constraint systems
+[2K
+Verifying property 1 at line 6
+[2K -- Property is satisfied., Size: 13 states, Load: 1 states[K
+
+Strategy to avoid losing:
+
+State: ( AbstractTrain.INIT AbstractTrainDoor.INIT AbstractScreenDoor.closed Controller.INIT Monitor
+.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in true, take transition AbstractTrainDoor.INIT->AbstractTrainDoor.closed { 1, tau, t :
+= 0, c1 := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.INIT AbstractScreenDoor.open Controller.trainDoorClose
+d Monitor.trainDoorClosed ) AbstractTrainDoor.c1=1 AbstractScreenDoor.c2=0 Controller.flag=1
+When you are in (Monitor.t==0), take transition AbstractTrainDoor.INIT->AbstractTrainDoor.closed { 1
+, tau, t := 0, c1 := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.open AbstractScreenDoor.open Controller.open Monitor.I
+NIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=1
+When you are in true, take transition Controller.open->Controller.INIT { 1, close1!, 1 }
+AbstractTrainDoor.open->AbstractTrainDoor.shut { 1, close1?, c1 := 1, t := 0 }
+
+State: ( AbstractTrain.leave AbstractTrainDoor.closed AbstractScreenDoor.INIT Controller.INIT Monito
+r.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=1 Controller.flag=0
+When you are in (AbstractTrain.t==0), take transition AbstractScreenDoor.INIT->AbstractScreenDoor.cl
+osed { 1, tau, t := 0, c2 := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.closed AbstractScreenDoor.part Controller.INIT Monitor
+.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in (AbstractScreenDoor.t<=2), take transition Controller.INIT->Controller.open { flag =
+= 0, open1!, flag := 1 }
+AbstractTrainDoor.closed->AbstractTrainDoor.part { 1, open1?, c1 := 0, t := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.closed AbstractScreenDoor.INIT Controller.screenDoorCl
+osed Monitor.closeScreenDoor ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=1 Controller.flag=1
+When you are in (5<=Monitor.t), take transition Controller.screenDoorClosed->Controller.INIT { 1, st
+op_leave!, flag := 0, t := 0 }
+AbstractTrain.stop->AbstractTrain.leave { 1, stop_leave?, t := 0 }
+Monitor.closeScreenDoor->Monitor.INIT { 1, stop_leave?, 1 }
+
+State: ( AbstractTrain.INIT AbstractTrainDoor.INIT AbstractScreenDoor.INIT Controller.INIT Monitor.I
+NIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in true, take transition AbstractScreenDoor.INIT->AbstractScreenDoor.closed { 1, tau, t
+ := 0, c2 := 0 }
+
+State: ( AbstractTrain.near AbstractTrainDoor.INIT AbstractScreenDoor.INIT Controller.INIT Monitor.I
+NIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in (AbstractTrain.t==0), take transition AbstractScreenDoor.INIT->AbstractScreenDoor.cl
+osed { 1, tau, t := 0, c2 := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.closed AbstractScreenDoor.open Controller.INIT Monitor
+.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in true, take transition Controller.INIT->Controller.open { flag == 0, open1!, flag :=
+1 }
+AbstractTrainDoor.closed->AbstractTrainDoor.part { 1, open1?, c1 := 0, t := 0 }
+
+State: ( AbstractTrain.near AbstractTrainDoor.closed AbstractScreenDoor.closed Controller.INIT Monit
+or.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in (125<=AbstractTrain.t && AbstractTrain.t<=126), take transition AbstractTrain.near->
+AbstractTrain.stop { t >= 125, near_stop!, t := 0 }
+Controller.INIT->Controller.stop { 1, near_stop?, 1 }
+
+State: ( AbstractTrain.INIT AbstractTrainDoor.closed AbstractScreenDoor.INIT Controller.INIT Monitor
+.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in true, take transition AbstractScreenDoor.INIT->AbstractScreenDoor.closed { 1, tau, t
+ := 0, c2 := 0 }
+
+State: ( AbstractTrain.near AbstractTrainDoor.INIT AbstractScreenDoor.closed Controller.INIT Monitor
+.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in (AbstractTrain.t==0), take transition AbstractTrainDoor.INIT->AbstractTrainDoor.clos
+ed { 1, tau, t := 0, c1 := 0 }
+
+State: ( AbstractTrain.INIT AbstractTrainDoor.closed AbstractScreenDoor.closed Controller.INIT Monit
+or.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in true, take transition AbstractTrain.INIT->AbstractTrain.near { 1, tau, t := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.open AbstractScreenDoor.part Controller.open Monitor.I
+NIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=1
+When you are in (AbstractScreenDoor.t==2), take transition Controller.open->Controller.INIT { 1, clo
+se1!, 1 }
+AbstractTrainDoor.open->AbstractTrainDoor.shut { 1, close1?, c1 := 1, t := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.closed AbstractScreenDoor.open Controller.trainDoorClo
+sed Monitor.trainDoorClosed ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=1
+When you are in (5<=Monitor.t), take transition Controller.trainDoorClosed->Controller.INIT { 1, clo
+se2!, 1 }
+AbstractScreenDoor.open->AbstractScreenDoor.shut { 1, close2?, c2 := 1, t := 0 }
+Monitor.trainDoorClosed->Monitor.closeScreenDoor { 1, close2?, 1 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.closed AbstractScreenDoor.closed Controller.stop Monit
+or.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in true, take transition Controller.stop->Controller.INIT { 1, open2!, 1 }
+AbstractScreenDoor.closed->AbstractScreenDoor.part { 1, open2?, c2 := 0, t := 0 }
+
+State: ( AbstractTrain.stop AbstractTrainDoor.closed AbstractScreenDoor.closed Controller.screenDoor
+Closed Monitor.closeScreenDoor ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=1
+When you are in (5<=Monitor.t), take transition Controller.screenDoorClosed->Controller.INIT { 1, st
+op_leave!, flag := 0, t := 0 }
+AbstractTrain.stop->AbstractTrain.leave { 1, stop_leave?, t := 0 }
+Monitor.closeScreenDoor->Monitor.INIT { 1, stop_leave?, 1 }
+
+State: ( AbstractTrain.near AbstractTrainDoor.closed AbstractScreenDoor.INIT Controller.INIT Monitor
+.INIT ) AbstractTrainDoor.c1=0 AbstractScreenDoor.c2=0 Controller.flag=0
+When you are in (AbstractTrain.t==0), take transition AbstractScreenDoor.INIT->AbstractScreenDoor.cl
+osed { 1, tau, t := 0, c2 := 0 }
+
+D:\fanghuixing\csfile\Hybrid Systems\DOC\UPPAAL\PSDS>

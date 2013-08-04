@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_1.dtd'>
+<nta>
+	<declaration>// Place global declarations here.
+clock time;
+const int Num=3;
+typedef int[0,Num - 1] id_t;
+broadcast chan near_stop,stop_leave, open_TrainDoor,open_ScreenDoor,close_TrainDoor,close_ScreenDoor, shut_closed_TrainDoor[id_t],shut_closed_ScreenDoor[id_t];
+</declaration>
+	<template>
+		<name x="5" y="5">train</name>
+		<declaration>// Place local declarations here.
+clock x,v;
+clock time;</declaration>
+		<location id="id0" x="464" y="-40">
+			<name x="454" y="-70">leave</name>
+			<label kind="invariant" x="392" y="-16">v'==0.128
+&amp;&amp;x'==1*v&amp;&amp;x&lt;=2000</label>
+		</location>
+		<location id="id1" x="304" y="-40">
+			<name x="294" y="-70">stop</name>
+			<label kind="invariant" x="294" y="-25">v'==0&amp;&amp;x'==0</label>
+		</location>
+		<location id="id2" x="112" y="-40">
+			<name x="102" y="-70">near</name>
+			<label kind="invariant" x="56" y="-24">v'==-0.128&amp;&amp;x'==-1*v
+&amp;&amp;x&gt;=0</label>
+		</location>
+		<location id="id3" x="-72" y="-40">
+			<name x="-88" y="-80">INIT</name>
+			<urgent/>
+		</location>
+		<init ref="id3"/>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id3"/>
+			<label kind="guard" x="232" y="-120">x&gt;=2000</label>
+			<nail x="392" y="-96"/>
+			<nail x="-24" y="-96"/>
+		</transition>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+			<label kind="synchronisation" x="344" y="-40">stop_leave?</label>
+		</transition>
+		<transition>
+			<source ref="id2"/>
+			<target ref="id1"/>
+			<label kind="guard" x="152" y="-64">x&lt;=1</label>
+			<label kind="synchronisation" x="168" y="-40">near_stop!</label>
+			<label kind="assignment" x="200" y="-64">x=0,v=0</label>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id2"/>
+			<label kind="assignment" x="-24" y="-64">v=16,x=1000,time=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>train_door</name>
+		<parameter>id_t i</parameter>
+		<declaration>clock y1,cost;
+bool c1;</declaration>
+		<location id="id4" x="-488" y="-152">
+			<name x="-498" y="-182">Error</name>
+		</location>
+		<location id="id5" x="-264" y="-72">
+			<urgent/>
+		</location>
+		<location id="id6" x="-328" y="-192">
+			<name x="-368" y="-192">shut</name>
+			<label kind="invariant" x="-456" y="-208">y1'==-1&amp;&amp;y1&gt;=0</label>
+		</location>
+		<location id="id7" x="-328" y="-296">
+			<name x="-338" y="-326">Init</name>
+			<urgent/>
+		</location>
+		<location id="id8" x="-248" y="-192">
+			<name x="-232" y="-192">clamp</name>
+			<label kind="invariant" x="-304" y="-232">y1'==-1 &amp;&amp; y1&gt;0</label>
+		</location>
+		<location id="id9" x="-64" y="-296">
+			<name x="-74" y="-326">part</name>
+			<label kind="invariant" x="-144" y="-344">y1'==1&amp;&amp;y1&gt;=0&amp;&amp;y1&lt;=2</label>
+		</location>
+		<location id="id10" x="-64" y="-72">
+			<name x="-80" y="-64">open</name>
+			<label kind="invariant" x="-40" y="-80">y1'==0&amp;&amp;cost'==0</label>
+			<label kind="exponentialrate" x="-72" y="-48">2</label>
+		</location>
+		<location id="id11" x="-200" y="-296">
+			<name x="-224" y="-328">closed</name>
+			<label kind="invariant" x="-242" y="-281">y1'==0&amp;&amp;cost'==0</label>
+		</location>
+		<branchpoint id="id12" x="-328" y="-72">
+		</branchpoint>
+		<init ref="id7"/>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-464" y="-152">y1==0&amp;&amp;cost&lt;=3</label>
+			<nail x="-376" y="-152"/>
+		</transition>
+		<transition>
+			<source ref="id5"/>
+			<target ref="id12"/>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id6"/>
+			<label kind="probability" x="-352" y="-168">4</label>
+		</transition>
+		<transition>
+			<source ref="id12"/>
+			<target ref="id8"/>
+			<label kind="probability" x="-264" y="-160">1</label>
+		</transition>
+		<transition>
+			<source ref="id6"/>
+			<target ref="id7"/>
+			<label kind="guard" x="-440" y="-272">y1==0&amp;&amp;cost&gt;3</label>
+			<label kind="synchronisation" x="-496" y="-248">shut_closed_TrainDoor[i]!</label>
+		</transition>
+		<transition>
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-144" y="-248">y1&lt;2</label>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-184" y="-120">c1==1</label>
+			<nail x="-88" y="-96"/>
+			<nail x="-256" y="-96"/>
+		</transition>
+		<transition>
+			<source ref="id10"/>
+			<target ref="id5"/>
+			<label kind="synchronisation" x="-224" y="-72">close_TrainDoor?</label>
+			<label kind="assignment" x="-184" y="-56">c1=1</label>
+		</transition>
+		<transition>
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="guard" x="-56" y="-256">y1==2</label>
+		</transition>
+		<transition>
+			<source ref="id11"/>
+			<target ref="id9"/>
+			<label kind="synchronisation" x="-192" y="-320">open_TrainDoor?</label>
+		</transition>
+		<transition>
+			<source ref="id7"/>
+			<target ref="id11"/>
+			<label kind="assignment" x="-320" y="-296">y1=0,c1=0,cost=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Monitor</name>
+		<declaration>clock t;</declaration>
+		<location id="id13" x="40" y="-8">
+			<name x="30" y="-38">TimeOut</name>
+		</location>
+		<location id="id14" x="-128" y="-8">
+		</location>
+		<init ref="id14"/>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id14"/>
+			<label kind="guard" x="-144" y="-120">t&lt;=400</label>
+			<label kind="synchronisation" x="-152" y="-96">stop_leave?</label>
+			<label kind="assignment" x="-128" y="-80">t=0</label>
+			<nail x="-96" y="-56"/>
+			<nail x="-144" y="-56"/>
+		</transition>
+		<transition>
+			<source ref="id14"/>
+			<target ref="id13"/>
+			<label kind="guard" x="-72" y="-48">t&gt;400</label>
+			<label kind="synchronisation" x="-88" y="-32">stop_leave?</label>
+		</transition>
+	</template>
+	<template>
+		<name>screen_door</name>
+		<parameter>id_t i</parameter>
+		<declaration>clock y2,cost;
+bool c2;</declaration>
+		<location id="id15" x="-256" y="112">
+			<urgent/>
+		</location>
+		<location id="id16" x="-248" y="-8">
+			<name x="-258" y="-38">clamp</name>
+			<label kind="invariant" x="-312" y="-48">y2'==-1 &amp;&amp; y2&gt;0</label>
+		</location>
+		<location id="id17" x="-328" y="-8">
+			<name x="-368" y="-8">shut</name>
+			<label kind="invariant" x="-448" y="-24">y2'==-1&amp;&amp;y2&gt;=0</label>
+		</location>
+		<location id="id18" x="-64" y="112">
+			<name x="-80" y="120">open</name>
+			<label kind="invariant" x="-40" y="104">y2'==0&amp;&amp;cost'==0</label>
+			<label kind="exponentialrate" x="-72" y="136">2</label>
+		</location>
+		<location id="id19" x="-64" y="-112">
+			<name x="-74" y="-142">part</name>
+			<label kind="invariant" x="-144" y="-160">y2'==1&amp;&amp;y2&gt;=0&amp;&amp;y2&lt;=2</label>
+		</location>
+		<location id="id20" x="-208" y="-112">
+			<name x="-232" y="-144">closed</name>
+			<label kind="invariant" x="-250" y="-97">y2'==0&amp;&amp;cost'==0</label>
+		</location>
+		<location id="id21" x="-328" y="-112">
+			<name x="-338" y="-142">Init</name>
+			<urgent/>
+		</location>
+		<branchpoint id="id22" x="-328" y="112">
+		</branchpoint>
+		<init ref="id21"/>
+		<transition>
+			<source ref="id15"/>
+			<target ref="id22"/>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id15"/>
+			<label kind="guard" x="-224" y="58">c2==1</label>
+			<nail x="-88" y="88"/>
+			<nail x="-240" y="88"/>
+		</transition>
+		<transition>
+			<source ref="id17"/>
+			<target ref="id21"/>
+			<label kind="guard" x="-384" y="-64">y2==0</label>
+			<label kind="synchronisation" x="-504" y="-88">shut_closed_ScreenDoor[i]!</label>
+		</transition>
+		<transition>
+			<source ref="id16"/>
+			<target ref="id19"/>
+			<label kind="guard" x="-184" y="-40">y2&lt;2</label>
+		</transition>
+		<transition>
+			<source ref="id18"/>
+			<target ref="id15"/>
+			<label kind="synchronisation" x="-224" y="112">close_ScreenDoor?</label>
+			<label kind="assignment" x="-184" y="128">c2=1</label>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id16"/>
+			<label kind="probability" x="-280" y="40">1</label>
+			<nail x="-320" y="88"/>
+		</transition>
+		<transition>
+			<source ref="id22"/>
+			<target ref="id17"/>
+			<label kind="probability" x="-352" y="40">4</label>
+		</transition>
+		<transition>
+			<source ref="id19"/>
+			<target ref="id18"/>
+			<label kind="guard" x="-56" y="-72">y2==2</label>
+		</transition>
+		<transition>
+			<source ref="id20"/>
+			<target ref="id19"/>
+			<label kind="synchronisation" x="-200" y="-136">open_ScreenDoor?</label>
+		</transition>
+		<transition>
+			<source ref="id21"/>
+			<target ref="id20"/>
+			<label kind="assignment" x="-320" y="-112">y2=0,c2=0,cost=0</label>
+		</transition>
+	</template>
+	<template>
+		<name>Controller</name>
+		<declaration>clock t;
+int count;
+</declaration>
+		<location id="id23" x="-240" y="-88">
+			<name x="-352" y="-96">openTrainDoor</name>
+			<label kind="invariant" x="-216" y="-96">t&lt;=30</label>
+		</location>
+		<location id="id24" x="-544" y="-8">
+			<name x="-664" y="-24">closeScreenDoor</name>
+			<label kind="invariant" x="-592" y="-8">t'==0</label>
+			<label kind="exponentialrate" x="-554" y="7">2</label>
+		</location>
+		<location id="id25" x="-392" y="-8">
+			<name x="-440" y="24">trainDoorClosed</name>
+			<label kind="invariant" x="-402" y="7">t&lt;=10</label>
+		</location>
+		<location id="id26" x="-544" y="-80">
+			<name x="-528" y="-96">leave</name>
+			<label kind="invariant" x="-528" y="-80">t&lt;=5</label>
+		</location>
+		<location id="id27" x="-240" y="-8">
+			<name x="-224" y="-16">closeTrainDoor</name>
+			<label kind="exponentialrate" x="-248" y="8">2</label>
+		</location>
+		<location id="id28" x="-240" y="-160">
+			<name x="-280" y="-200">openScreenDoor</name>
+			<label kind="invariant" x="-224" y="-168">t&lt;=5</label>
+		</location>
+		<location id="id29" x="-408" y="-160">
+			<name x="-424" y="-192">stop</name>
+			<label kind="invariant" x="-418" y="-145">t&lt;=5</label>
+		</location>
+		<location id="id30" x="-544" y="-160">
+			<name x="-554" y="-190">INIT</name>
+		</location>
+		<init ref="id30"/>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id24"/>
+			<label kind="select" x="-608" y="16">i:id_t</label>
+			<label kind="synchronisation" x="-648" y="32">shut_closed_ScreenDoor[i]?</label>
+			<label kind="assignment" x="-664" y="16">count++</label>
+			<nail x="-576" y="32"/>
+			<nail x="-520" y="32"/>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id27"/>
+			<label kind="select" x="-344" y="56">i:id_t</label>
+			<label kind="synchronisation" x="-312" y="56">shut_closed_TrainDoor[i]?</label>
+			<label kind="assignment" x="-312" y="40">count++</label>
+			<nail x="-264" y="56"/>
+			<nail x="-216" y="56"/>
+		</transition>
+		<transition>
+			<source ref="id23"/>
+			<target ref="id27"/>
+			<label kind="guard" x="-224" y="-72">t&gt;=20</label>
+			<label kind="synchronisation" x="-232" y="-40">close_TrainDoor!</label>
+			<label kind="assignment" x="-232" y="-56">count=0</label>
+		</transition>
+		<transition>
+			<source ref="id28"/>
+			<target ref="id23"/>
+			<label kind="synchronisation" x="-224" y="-144">open_TrainDoor!</label>
+			<label kind="assignment" x="-224" y="-128">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id25"/>
+			<target ref="id24"/>
+			<label kind="guard" x="-520" y="-32">t&gt;=5</label>
+			<label kind="synchronisation" x="-528" y="-8">close_ScreenDoor!</label>
+			<label kind="assignment" x="-488" y="-32">count=0</label>
+		</transition>
+		<transition>
+			<source ref="id30"/>
+			<target ref="id29"/>
+			<label kind="synchronisation" x="-520" y="-184">near_stop?</label>
+			<label kind="assignment" x="-496" y="-160">t=0</label>
+			<nail x="-424" y="-160"/>
+		</transition>
+		<transition>
+			<source ref="id24"/>
+			<target ref="id26"/>
+			<label kind="guard" x="-672" y="-64">t&gt;=5&amp;&amp;count==Num</label>
+			<label kind="assignment" x="-592" y="-48">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id27"/>
+			<target ref="id25"/>
+			<label kind="guard" x="-368" y="-32">count==Num</label>
+			<label kind="assignment" x="-336" y="-8">t=0</label>
+		</transition>
+		<transition>
+			<source ref="id26"/>
+			<target ref="id30"/>
+			<label kind="guard" x="-604" y="-150">t&gt;=4</label>
+			<label kind="synchronisation" x="-624" y="-128">stop_leave!</label>
+		</transition>
+		<transition>
+			<source ref="id29"/>
+			<target ref="id28"/>
+			<label kind="synchronisation" x="-384" y="-184">open_ScreenDoor!</label>
+			<label kind="assignment" x="-360" y="-160">t=0</label>
+			<nail x="-400" y="-160"/>
+		</transition>
+	</template>
+	<system>//Train Doors
+T1=train_door(0);
+T2=train_door(1);
+T3=train_door(2);
+
+//Screen Doors
+S1=screen_door(0);
+S2=screen_door(1);
+S3=screen_door(2);
+
+system 
+train,
+T1,T2,T3,
+S1,S2,S3,
+Controller,
+Monitor;</system>
+</nta>

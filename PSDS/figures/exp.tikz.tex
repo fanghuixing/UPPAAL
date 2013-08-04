@@ -1,0 +1,6 @@
+\begin{tikzpicture}
+    \draw[very thin,color=gray] ;
+    \draw[->] (-.2,0) -- (5,0) node[right] {$t$};
+    \draw[->] (0,-0.2) -- (0,5*0.5) node[above] {$f(t)$};
+    \draw[domain=0:5] plot (\x,{5*0.4*exp(-\x)});
+\end{tikzpicture}

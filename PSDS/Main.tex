@@ -1,0 +1,39 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage[left=0.50cm, right=0.50cm, top=0.50cm, bottom=0.50cm]{geometry}
+\author{fofo}
+\usepackage{pgfplots}
+
+% The data files, written on the first run.
+
+
+\begin{document}
+
+In Fig.\ref{fig:ProClamping}, from 6 to 9 and from 16 to 20, the subway is in the {\em Rush Hours}. During rush hours, the probability for doors clamping is 0.4. The normal hours are from 5 to 6, from 9 to 16, and from 20 to 22, the probability is 0.25.
+
+\begin{figure}
+\centering
+\scalebox{1}[1]{
+\input{figures/probability.tikz}}
+\caption{The Probabilities for Clamping for All Time in A Day}
+\label{fig:ProClamping}
+\end{figure}
+
+\begin{figure}[tbph]
+\centering
+\includegraphics[width=1.0\linewidth]{./figures/ProbabilityOverTimeFigure}
+\caption{The variation of probability for doors clamping during the closing.}
+\label{fig:ProbabilityOverTimeFigure}
+\end{figure}
+In Fig.\ref{fig:ProbabilityOverTimeFigure}, for one duration, we suppose that the highest probability of doors clamping for the train doors is 0.5 (the black one in Fig.\ref{fig:ProbabilityOverTimeFigure}), and, as the screen doors are closed after train doors, the probability of doors clamping for screen doors is smaller (e.g., 0.25) than the probability for train doors.
+During doors closing, the probability  of doors clamping will decrease with time.
+
+\begin{tikzpicture}
+\draw (0,0) node {.};
+\draw (15,0) node {.};
+\end{tikzpicture}
+\end{document}
