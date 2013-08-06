@@ -3,7 +3,12 @@
 /*
 
 */
-simulate 1 [<=1000] {x[0],x[1],x[2],x[3]}
+Pr [<=1000] (<> uc2.MyTrainID==Nt and uc2.OtherTrainID==Nt)
+
+/*
+
+*/
+simulate 1 [<=3000] {x[0],x[1],x[2],x[3]}
 
 /*
 
