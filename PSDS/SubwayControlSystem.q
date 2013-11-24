@@ -8,7 +8,6 @@ Pr [<=1000] (<> uc2.MyTrainID==Nt and uc2.OtherTrainID==Nt)
 /*
 
 */
-
 simulate 1 [<=1000] {Tr4.URDEC,2+Tr4.URSTOP, 4+Tr4.URINC, 6+Tr4.RECOVER}
 
 /*
